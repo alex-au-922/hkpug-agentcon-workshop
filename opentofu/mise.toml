@@ -1,0 +1,14 @@
+[tasks.init]
+run = """
+tofu init
+"""
+
+[tasks.plan]
+run = """
+tofu plan --out tfplan
+"""
+
+[tasks.apply]
+run = """
+tofu apply tfplan
+"""

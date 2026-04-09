@@ -1,0 +1,5 @@
+[tools]
+opentofu = "latest"
+
+[monorepo]
+config_roots = ["opentofu"]
