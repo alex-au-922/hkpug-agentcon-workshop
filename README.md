@@ -1,8 +1,3 @@
-Here is the updated and polished `README.md`. It elevates your original documentation by explicitly defining the **4 Core Principles**, introducing the **Trusted Computing Base (TCB)** concept we discussed, and aligning the demo arc perfectly with your deep-tech infrastructure (KubeArmor, Istio Ambient, and WASM).
-
-***
-
-```markdown
 # HKPUG AgentCon Workshop: Jailbreaking the Ghost
 
 This repository contains the infrastructure, OpenTofu states, and workshop materials for the Hong Kong Python User Group's AgentCon HK security workshop.
