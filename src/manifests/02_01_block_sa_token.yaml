@@ -1,0 +1,12 @@
+apiVersion: security.kubearmor.com/v1
+kind: KubeArmorPolicy
+metadata:
+  name: block-service-account-token
+spec:
+  selector:
+    matchLabels:
+      app: vscode
+  file:
+    matchPaths:
+    - path: /var/run/secrets/kubernetes.io/serviceaccount/token
+  action: Block

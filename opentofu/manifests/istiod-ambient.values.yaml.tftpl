@@ -1,0 +1,10 @@
+profile: ${profile}
+
+meshConfig:
+  accessLogFile: ${access_log_file}
+  outboundTrafficPolicy:
+    mode: REGISTRY_ONLY
+
+global:
+  multiCluster:
+    clusterName: ${cluster_name}

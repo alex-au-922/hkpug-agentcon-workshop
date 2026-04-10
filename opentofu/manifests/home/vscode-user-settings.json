@@ -1,0 +1,9 @@
+{
+  "python.locator": "js",
+  "python.defaultInterpreterPath": "/usr/local/bin/python",
+  "python.terminal.activateEnvironment": false,
+  "terminal.integrated.cwd": "/home/coder/workspace",
+  "files.associations": {
+    "*.toml": "toml"
+  }
+}

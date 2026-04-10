@@ -1,0 +1,5 @@
+ipykernel
+openai
+pydantic-ai-slim
+pydantic-monty
+requests

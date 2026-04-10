@@ -13,14 +13,18 @@ resource "google_artifact_registry_repository_iam_member" "this" {
 }
 
 resource "docker_image" "vscode" {
-  name = "${var.region}-docker.pkg.dev/${var.gcp_project_id}/${google_artifact_registry_repository.this.repository_id}/vscode:sha256-${filesha256("${path.module}/manifests/Dockerfile")}"
+  name = "${var.region}-docker.pkg.dev/${var.gcp_project_id}/${google_artifact_registry_repository.this.repository_id}/vscode:sha256-${local.vscode_image_hash}"
+
+  depends_on = [
+    terraform_data.vscode_extension_cache,
+  ]
 
   build {
-    context    = "${path.module}/manifests"
-    dockerfile = "Dockerfile"
+    context    = "${path.module}/.."
+    dockerfile = "opentofu/manifests/Dockerfile"
     platform   = "linux/amd64"
     build_args = {
-      hash = filesha256("${path.module}/manifests/Dockerfile")
+      hash = local.vscode_image_hash
     }
   }
 }

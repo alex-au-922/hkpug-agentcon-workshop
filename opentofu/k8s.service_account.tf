@@ -11,8 +11,6 @@ resource "kubernetes_manifest" "vscode_sa" {
       labels:
         app: vscode
         tenant: ${each.key}
-      annotations:
-        iam.gke.io/gcp-service-account: ${google_service_account.workload_identity_user_sa[each.key].email}
     EOT
   )
 }

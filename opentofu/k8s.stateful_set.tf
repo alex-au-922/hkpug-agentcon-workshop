@@ -1,15 +1,41 @@
-resource "kubernetes_manifest" "vscode_statefulset" {
+resource "kubernetes_persistent_volume_claim_v1" "vscode_workspace" {
   for_each = toset(local.tenant_namespaces)
   provider = kubernetes
+
+  metadata {
+    name      = "vscode-workspace"
+    namespace = kubernetes_namespace_v1.tenant[each.key].metadata[0].name
+  }
+
+  spec {
+    access_modes       = ["ReadWriteOnce"]
+    storage_class_name = "persistent-storage"
+
+    resources {
+      requests = {
+        storage = var.tenant_config.storage
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "vscode_deployment" {
+  for_each = toset(local.tenant_namespaces)
+  provider = kubernetes
+  computed_fields = ["metadata.annotations"]
+
+  field_manager {
+    force_conflicts = true
+  }
+
   manifest = yamldecode(
     <<EOT
     apiVersion: apps/v1
-    kind: StatefulSet
+    kind: Deployment
     metadata:
-      name: vscode 
+      name: vscode
       namespace: ${kubernetes_namespace_v1.tenant[each.key].metadata[0].name}
     spec:
-      serviceName: vscode
       replicas: 1
       selector:
         matchLabels:
@@ -20,20 +46,48 @@ resource "kubernetes_manifest" "vscode_statefulset" {
             app: vscode
         spec:
           serviceAccountName: ${kubernetes_manifest.vscode_sa[each.key].object.metadata.name}
+          nodeSelector:
+            usage: workshop
           shareProcessNamespace: true
           initContainers:
-          - name: fix-permissions
-            image: busybox:latest
-            command: ["sh", "-c", "chmod -R 777 /home/coder"]
+          - name: seed-home
+            image: ${docker_registry_image.vscode.name}
+            securityContext:
+              runAsUser: 0
+            command:
+            - sh
+            - -c
+            - |
+              mkdir -p /home/coder /home/coder/.zsh /home/coder/.vscode /home/coder/.vscode-data/User /home/coder/.vscode-data/extensions /home/coder/.vscode-server/extensions /home/coder/.local/share
+              if [ ! -f /home/coder/.zshrc ]; then cp /opt/workshop-home/.zshrc /home/coder/.zshrc; fi
+              cp /opt/workshop-home/.vscode-data/User/settings.json /home/coder/.vscode-data/User/settings.json
+              if [ ! -d /home/coder/.zsh/plugins ]; then cp -a /opt/workshop-home/.zsh/plugins /home/coder/.zsh/; fi
+              cp -a /opt/workshop-home/.vscode/extensions/. /home/coder/.vscode/extensions/
+              cp -a /opt/workshop-home/.vscode/extensions/. /home/coder/.vscode-data/extensions/
+              cp -a /opt/workshop-home/.vscode/extensions/. /home/coder/.vscode-server/extensions/
+              if [ ! -d /home/coder/.local/share/jupyter ]; then mkdir -p /home/coder/.local/share && cp -a /opt/workshop-home/.local/share/jupyter /home/coder/.local/share/; fi
+              rm -rf /home/coder/workspace/.venv
+              if [ ! -f /home/coder/workspace/requirements.txt ]; then cp -a /opt/workshop-seed/workspace/. /home/coder/workspace/; fi
+              rm -f /home/coder/.p10k.zsh
+              chown 1000:1000 /home/coder
+              chown -R 1000:1000 /home/coder/.zsh /home/coder/.vscode /home/coder/.vscode-data /home/coder/.vscode-server /home/coder/.local /home/coder/workspace /home/coder/.zshrc
+              chmod 755 /home/coder
+              chmod -R u+rwX,go+rX /home/coder/.zsh /home/coder/.vscode /home/coder/.vscode-data /home/coder/.vscode-server /home/coder/.local /home/coder/workspace
+              chmod -R go-w /home/coder/.zsh /home/coder/.vscode /home/coder/.vscode-data /home/coder/.vscode-server /home/coder/.local /home/coder/workspace
+              chmod 644 /home/coder/.zshrc
             volumeMounts:
-              - name: vscode-storage
+              - name: vscode-home
                 mountPath: /home/coder
+              - name: vscode-workspace
+                mountPath: /home/coder/workspace
           containers:
             - name: vscode
               image: ${docker_registry_image.vscode.name}
               volumeMounts:
-                - name: vscode-storage
+                - name: vscode-home
                   mountPath: /home/coder
+                - name: vscode-workspace
+                  mountPath: /home/coder/workspace
               ports:
                 - containerPort: 8000
                   name: vscode
@@ -68,17 +122,17 @@ resource "kubernetes_manifest" "vscode_statefulset" {
             - name: basic-auth-credentials
               secret:
                 secretName: ${kubernetes_secret.basic_auth_credentials[each.key].metadata[0].name}
-      volumeClaimTemplates:
-        - metadata:
-            name: vscode-storage
-          spec:
-            accessModes: [ "ReadWriteOnce" ]
-            resources:
-              requests:
-                storage: ${var.tenant_config.storage}
-            storageClassName: persistent-storage 
+            - name: vscode-home
+              emptyDir: {}
+            - name: vscode-workspace
+              persistentVolumeClaim:
+                claimName: ${kubernetes_persistent_volume_claim_v1.vscode_workspace[each.key].metadata[0].name}
     EOT
   )
+
+  depends_on = [
+    kubernetes_persistent_volume_claim_v1.vscode_workspace,
+  ]
 }
 
 resource "kubernetes_config_map_v1" "nginx_config" {
@@ -116,8 +170,9 @@ data "external" "htpasswd_hash" {
   program = ["bash", "-c", <<EOT
     PASSWORD="${random_password.tenant_namespaces_vscode[each.key].result}"
     USERNAME="${each.key}"
-    HASH=$(docker run --rm httpd:2.4-alpine htpasswd -nbB "$USERNAME" "$PASSWORD" | cut -d ":" -f 2)
-    echo "{\"hash\": \"$HASH\"}"
+    SALT="${substr(sha256(join(":", [each.key, random_password.tenant_namespaces_vscode[each.key].result])), 0, 8)}"
+    HASH=$(openssl passwd -apr1 -salt "$SALT" "$PASSWORD")
+    printf '{"hash":"%s"}\n' "$HASH"
   EOT
   ]
 }

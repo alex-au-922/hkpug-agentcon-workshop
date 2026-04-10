@@ -1,0 +1,18 @@
+{
+  "python.locator": "js",
+  "python.defaultInterpreterPath": "/usr/local/bin/python",
+  "python.terminal.activateEnvironment": false,
+  "terminal.integrated.cwd": "/home/coder/workspace",
+  "jupyter.notebookFileRoot": "/home/coder/workspace",
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.profiles.linux": {
+    "zsh": {
+      "path": "/usr/bin/zsh"
+    }
+  },
+  "files.associations": {
+    "*.toml": "toml"
+  },
+  "yaml.format.enable": true,
+  "files.trimTrailingWhitespace": true
+}

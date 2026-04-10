@@ -1,0 +1,12 @@
+profile: ${profile}
+
+cniBinDir: ${cni_bin_dir}
+
+ambient:
+  enabled: true
+  dnsCapture: ${dns_capture}
+
+excludeNamespaces:
+%{ for namespace in exclude_namespaces ~}
+  - ${namespace}
+%{ endfor ~}

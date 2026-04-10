@@ -13,6 +13,20 @@ variable "region" {
   type        = string
 }
 
+variable "vscode_extensions" {
+  description = "VS Code extensions to prefetch and bake into the IDE image"
+  type = list(object({
+    id        = string
+    source    = string
+    publisher = string
+    name      = string
+    version   = string
+    target    = string
+    url       = string
+    filename  = string
+  }))
+}
+
 variable "cloudflare_api_token" {
   description = "Cloudflare API token for domain management"
   type        = string
@@ -85,5 +99,73 @@ variable "tenant_config" {
     curr_tenant_num        = number
     vscode_password_length = number
     storage                = string
+  })
+}
+
+variable "istio_config" {
+  description = "Configuration for Istio ambient mesh"
+  type = object({
+    namespace        = string
+    profile          = string
+    default_revision = string
+    dataplane_mode   = string
+    base = object({
+      name       = string
+      repository = string
+      chart      = string
+      version    = string
+      value_file = string
+    })
+    cni = object({
+      name               = string
+      namespace          = string
+      repository         = string
+      chart              = string
+      version            = string
+      value_file         = string
+      cni_bin_dir        = string
+      dns_capture        = bool
+      exclude_namespaces = list(string)
+    })
+    istiod = object({
+      name            = string
+      repository      = string
+      chart           = string
+      version         = string
+      value_file      = string
+      access_log_file = string
+    })
+    ztunnel = object({
+      name                    = string
+      repository              = string
+      chart                   = string
+      version                 = string
+      value_file              = string
+      resource_quotas_enabled = bool
+      resource_quota_pods     = number
+    })
+  })
+}
+
+variable "kubearmor_config" {
+  description = "Configuration for KubeArmor"
+  type = object({
+    name                         = string
+    namespace                    = string
+    repository                   = string
+    chart                        = string
+    version                      = string
+    value_file                   = string
+    environment_name             = string
+    relay_enabled                = bool
+    image_pull_policy            = string
+    default_file_posture         = string
+    default_capabilities_posture = string
+    default_network_posture      = string
+    visibility                   = string
+    alert_throttling             = bool
+    max_alert_per_sec            = number
+    throttle_sec                 = number
+    match_args                   = bool
   })
 }

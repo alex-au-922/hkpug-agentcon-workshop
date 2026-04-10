@@ -8,7 +8,7 @@ data "kubernetes_namespace_v1" "kube_system" {
 # placeholder for iterator
 resource "null_resource" "tenant_namespaces" {
   count = var.tenant_config.max_tenant_num
-} 
+}
 
 resource "random_password" "tenant_namespaces_vscode" {
   for_each = toset(local.all_tenant_namespaces)
@@ -24,9 +24,14 @@ resource "kubernetes_namespace_v1" "tenant" {
   provider = kubernetes
   metadata {
     name = each.value
-    labels = {
-      role = "tenant"
-    }
+    labels = merge(
+      {
+        role = "tenant"
+      },
+      var.istio_config.dataplane_mode == "ambient" && contains(local.tenant_namespaces, each.value) ? {
+        "istio.io/dataplane-mode" = var.istio_config.dataplane_mode
+      } : {}
+    )
   }
 }
 

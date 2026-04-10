@@ -1,0 +1,28 @@
+environment:
+  name: ${environment_name}
+
+kubearmorRelay:
+  enabled: ${relay_enabled}
+  imagePullPolicy: ${image_pull_policy}
+
+kubearmorInit:
+  imagePullPolicy: ${image_pull_policy}
+
+kubeRbacProxy:
+  imagePullPolicy: ${image_pull_policy}
+
+kubearmorController:
+  imagePullPolicy: ${image_pull_policy}
+
+kubearmorConfigMap:
+  defaultFilePosture: ${default_file_posture}
+  defaultCapabilitiesPosture: ${default_capabilities_posture}
+  defaultNetworkPosture: ${default_network_posture}
+  visibility: ${visibility}
+  alertThrottling: ${alert_throttling}
+  maxAlertPerSec: ${max_alert_per_sec}
+  throttleSec: ${throttle_sec}
+  matchArgs: ${match_args}
+
+kubearmor:
+  imagePullPolicy: ${image_pull_policy}
