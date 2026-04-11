@@ -21,9 +21,4 @@ locals {
     [for file in sort(tolist(fileset("${path.module}/manifests/home", "**"))) : "manifests/home/${file}"],
     [for file in sort(tolist(local.vscode_src_files)) : "../src/${file}"]
   )
-
-  vscode_image_hash = sha256(join("", concat(
-    [for file in local.vscode_build_files : filesha256("${path.module}/${file}")],
-    [sha256(jsonencode(var.vscode_extensions))]
-  )))
 }

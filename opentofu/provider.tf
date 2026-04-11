@@ -33,7 +33,7 @@ terraform {
 
 provider "google" {
   project = var.gcp_project_id
-  region  = "asia-east2"
+  region  = "asia-southeast1"
 }
 
 data "google_client_config" "provider" {

@@ -1,5 +1,6 @@
 {
   "python.locator": "js",
+  "python.useEnvironmentsExtension": false,
   "python.defaultInterpreterPath": "/usr/local/bin/python",
   "python.terminal.activateEnvironment": false,
   "terminal.integrated.cwd": "/home/coder/workspace",

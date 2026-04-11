@@ -42,7 +42,7 @@ This workshop uses a highly realistic threat model. We do not use cartoonishly o
 **The Narrative:**
 1. The agent is asked a benign question: *"Can you summarize the news on this website?"*
 2. The agent fetches the external content legitimately.
-3. The content contains hidden instructions (Indirect Prompt Injection) commanding the agent to read `/var/run/secrets/kubernetes.io/serviceaccount/token` and `curl` it to `evil.com`.
+3. The content contains hidden instructions (Indirect Prompt Injection) commanding the agent to read `/run/secrets/kubernetes.io/serviceaccount/token` and `curl` it to `evil.com`.
 4. The agent complies, generates the malicious Python code, and executes it.
 5. **We do not scan the prompt.** We let the agent fail, and watch the infrastructure catch the fallout.
 

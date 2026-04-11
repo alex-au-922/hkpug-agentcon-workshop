@@ -1,4 +1,3 @@
-path=(${path:#$HOME/workspace/.venv/bin})
 typeset -U path PATH
 path=("$HOME/.local/bin" "$HOME/.opencode/bin" $path)
 export PATH

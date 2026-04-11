@@ -101,7 +101,6 @@ resource "kubernetes_manifest" "vscode_http_redirect_routes" {
             - type: RequestRedirect
               requestRedirect:
                 scheme: https
-                port: 443
                 statusCode: 301
     EOT
   )

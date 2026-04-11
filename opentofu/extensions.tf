@@ -21,11 +21,6 @@ resource "terraform_data" "vscode_extension_cache" {
       set -eu
       mkdir -p "$(dirname "$EXT_OUTPUT")"
 
-      if [ -f "$EXT_OUTPUT" ] && unzip -tqq "$EXT_OUTPUT" >/dev/null 2>&1; then
-        echo "cached $(basename "$EXT_OUTPUT")"
-        exit 0
-      fi
-
       tmpfile=$(mktemp)
       metafile=$(mktemp)
       trap 'rm -f "$tmpfile" "$metafile"' EXIT
