@@ -45,7 +45,7 @@ resource "kubernetes_manifest" "llm_gateway_deployment" {
       name: llm-gateway
       namespace: ${kubernetes_namespace_v1.workshop_shared.metadata[0].name}
     spec:
-      replicas: 2
+      replicas: 4
       selector:
         matchLabels:
           app: llm-gateway

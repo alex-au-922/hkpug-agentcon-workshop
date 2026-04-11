@@ -132,10 +132,10 @@ gke_config = {
       spot         = false
       machine_type = "e2-standard-8"
       node_count = {
-        min = 1
-        max = 10
+        min = 20
+        max = 30
       }
-      disk_size   = 40
+      disk_size   = 100
       labels      = {}
       node_taints = []
     }
@@ -144,9 +144,9 @@ gke_config = {
       machine_type = "e2-standard-4"
       node_count = {
         min = 2
-        max = 3
+        max = 5
       }
-      disk_size   = 40
+      disk_size   = 100
       labels      = {}
       node_taints = []
     }
@@ -164,7 +164,7 @@ domain_config = {
 
 tenant_config = {
   max_tenant_num         = 80
-  curr_tenant_num        = 1
+  curr_tenant_num        = 80
   vscode_password_length = 4
   storage                = "10Gi"
 }
@@ -207,7 +207,7 @@ istio_config = {
     version                 = "1.29.1"
     value_file              = "manifests/ztunnel-ambient.values.yaml.tftpl"
     resource_quotas_enabled = true
-    resource_quota_pods     = 10
+    resource_quota_pods     = 40
   }
 }
 

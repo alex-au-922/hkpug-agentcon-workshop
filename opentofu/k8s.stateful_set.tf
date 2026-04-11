@@ -27,8 +27,8 @@ resource "kubernetes_deployment_v1" "vscode_deployment" {
       }
 
       spec {
-        service_account_name     = kubernetes_manifest.vscode_sa[each.key].object.metadata.name
-        share_process_namespace  = true
+        service_account_name    = kubernetes_manifest.vscode_sa[each.key].object.metadata.name
+        share_process_namespace = true
         node_selector = {
           usage = "workshop"
         }
@@ -49,10 +49,10 @@ resource "kubernetes_deployment_v1" "vscode_deployment" {
 
           resources {
             requests = {
-              memory = "5Gi"
+              memory = "6Gi"
             }
             limits = {
-              memory = "5Gi"
+              memory = "6Gi"
             }
           }
         }
