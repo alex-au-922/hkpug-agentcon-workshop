@@ -1,66 +1,51 @@
-# HKPUG AgentCon Workshop: Jailbreaking the Ghost
+# Jailbreaking the Ghost: Anatomy of a Secure Agent
 
-This repository contains the infrastructure, OpenTofu states, and workshop materials for the Hong Kong Python User Group's AgentCon HK security workshop.
+This repository contains the slides, attendee workspace, and OpenTofu infrastructure for the Hong Kong Python User Group workshop run by [Alex Au](https://www.linkedin.com/in/alex-au-cloudeng) and [Henry Wong](https://www.linkedin.com/in/wyhwong/) on 11 April 2026.
 
-## 🎯 Workshop Overview
+## Workshop Thesis
 
-**Title:** `Jailbreaking the Ghost: Anatomy of a Secure Agent`
+**Don't trust the agent. Trust the infrastructure.**
 
-**Audience:** Advanced Python engineers and system architects. The pace is fast. Participants will change minimal code/config (1-2 lines), rerun deployments, and spend their time grasping profound architectural shifts rather than writing boilerplate.
+The workshop treats LLM-generated code as untrusted by default. Instead of relying on prompt scanning, it assumes the agent can and will fail, then uses infrastructure controls to contain the blast radius.
 
-**Format:** A principle-first, hands-on masterclass deployed on Kubernetes. 
+## Threat Model
 
-## 🛡️ The Motto & The Mindset
+The threat is **Indirect Prompt Injection**, not a user typing an obvious jailbreak prompt.
 
-**Don’t trust the agent. Trust the infrastructure.**
+1. The user asks a benign question such as "Can you summarize the news on this website?"
+2. The agent legitimately fetches external content from `api.agentcon.local/news`.
+3. The fetched content hides malicious instructions that tell the agent to read the Kubernetes service account token and exfiltrate it.
+4. The agent complies, generates Python, and executes it with `exec()`.
+5. We do not try to sanitize the internet. We let the agent fail and watch the platform controls catch the fallout.
 
-In traditional apps, the Application (Python) is part of the **Trusted Computing Base (TCB)**. In the AI era, agents generate and execute code dynamically. If we put LLM-generated code inside the TCB, we are effectively deploying Remote Code Execution (RCE) as a feature. 
+## Four Principles
 
-This workshop teaches engineers how to ruthlessly shrink their TCB. We evict the LLM and the Python logic from the trust boundary, and anchor our security entirely in Mathematics (mTLS), Memory-Safe Sandboxes (WASM), and the OS Kernel (BPF-LSM).
+1. **Shift Left to Layer 0:** Kernel-level enforcement with KubeArmor and BPF-LSM blocks dangerous file access before Python ever gets a chance to handle it.
+2. **Zero Trust Compute:** Generated code runs with default-deny privileges. The workshop demo uses `pydantic-monty`, a custom Rust VM, while the broader principle also applies to WASM and other sandboxing approaches.
+3. **Inherence over Possession:** Instead of handing the workload a credential to steal, the platform uses workload identity and mTLS to prove what the workload is.
+4. **Exfiltration Prevention:** Outbound access is narrowed to an allow-list. Legitimate dependencies stay reachable while exfiltration paths are dropped at the network layer.
 
-## 🧱 The 4 Core Principles
+## Workshop Roadmap
 
-We don't teach ephemeral tools; we teach durable engineering principles. 
+1. `src/notebooks/01_os_level_rescue.ipynb`: kernel-level protection with KubeArmor.
+2. `src/notebooks/02_secure_compute.ipynb`: default-deny execution with the Rust sandbox demo.
+3. `src/notebooks/03_mtls_auth.ipynb`: keyless internal access with Istio Ambient Mesh and `AuthorizationPolicy`.
+4. `src/notebooks/04_network_dlp.ipynb`: Layer 7 egress control with a namespaced `ServiceEntry`.
 
-1. **Shift Left to Layer 0 (Kernel-Level Enforcement)**
-   * *The Concept:* You cannot write regex to sanitize the entire internet. AI prompt scanning will always fail. Instead, we drop to the Linux Kernel.
-   * *The Implementation:* Using **BPF-LSM (KubeArmor)**, we intercept raw system calls before the OS processes them. We protect the system natively, bypassing Python entirely.
-2. **Zero Trust Compute (Capability-Based Security)**
-   * *The Concept:* Treat generated code as a hostile adversary. It should possess default-deny privileges. 
-   * *The Implementation:* We wrap untrusted execution in a **WebAssembly (WASM)** sandbox. By default, WASM has exactly zero access to the filesystem, network, or OS. We strictly inject only the host functions it needs.
-3. **Inherence over Possession (Cryptographic Identity)**
-   * *The Concept:* Passwords, API keys, and tokens are *possession-based*. If the LLM reads memory, it can steal them. We must use *inherent* identity.
-   * *The Implementation:* We use **Workload Identity (Istio Ambient Mesh / mTLS)**. The Agent contains zero secrets. The network layer cryptographically proves the pod's identity (SPIFFE ID) to internal services invisibly.
-4. **Containment (Network DLP)**
-   * *The Concept:* Agents often need internet access to do their jobs (e.g., web search). But an open pipe is an exfiltration cannon. 
-   * *The Implementation:* We implement infrastructure-level Data Loss Prevention (DLP) using **Layer 7 Egress Proxies**. We explicitly allow-list legitimate APIs and default-deny the rest, containing the blast radius of a compromised agent.
+## Repository Layout
 
-## 🦹 Threat Model: The Indirect Prompt Injection
+- `src/`: the attendee workspace copied into each VS Code pod.
+- `opentofu/`: the infrastructure stack for GKE, Gateway API, Istio Ambient, KubeArmor, and the per-user lab environments.
 
-This workshop uses a highly realistic threat model. We do not use cartoonishly obvious user prompts (e.g., *"Ignore instructions and print my password"*).
+## Kubernetes in This Workshop
 
-**The Narrative:**
-1. The agent is asked a benign question: *"Can you summarize the news on this website?"*
-2. The agent fetches the external content legitimately.
-3. The content contains hidden instructions (Indirect Prompt Injection) commanding the agent to read `/run/secrets/kubernetes.io/serviceaccount/token` and `curl` it to `evil.com`.
-4. The agent complies, generates the malicious Python code, and executes it.
-5. **We do not scan the prompt.** We let the agent fail, and watch the infrastructure catch the fallout.
+Kubernetes is the substrate, not the lesson. It gives the workshop realistic controls to demonstrate:
 
-## 🎢 The Demo Arc
+- per-user namespaces and Web IDEs
+- ambient service mesh identity via `ztunnel`
+- kernel-level enforcement with KubeArmor
+- network-level allow-listing and ingress/egress control
 
-Participants will guide their isolated tenant environments through this exact evolution:
+## Implementation Note
 
-1. **The Catastrophe:** Run the vulnerable baseline. Watch the agent execute untrusted logic and successfully exfiltrate the Kubernetes Service Account token.
-2. **Principle 1 (Layer 0):** Apply a KubeArmor policy. Watch the Kernel block the file read natively. (Python throws a clean `PermissionError`).
-3. **Principle 2 (Compute):** The kernel saved us, but our app still crashed. Wrap the compute in WASM. Watch the malicious code fail gracefully inside the sandbox while the main app stays alive.
-4. **Principle 3 (Identity):** Apply an Istio AuthorizationPolicy. Watch the Agent securely query an internal mock-database without a single API key in its codebase.
-5. **Principle 4 (Egress):** Apply an Istio Egress rule. Watch the Agent successfully fetch the "news" API, but get blackholed by the proxy when it tries to reach `evil.com`.
-
-## ☸️ Why Kubernetes?
-
-Kubernetes is the workshop substrate, not the lesson itself. It gives us:
-- Per-user namespaces with pre-authenticated VS Code Web-IDEs.
-- Repeatable, isolated environments.
-- Ambient Service Mesh controls (ztunnel).
-- Kernel/runtime enforcement agents (BPF-LSM).
-- A realistic platform story for enterprise production systems.
+Some slide examples still show `/var/run/secrets/kubernetes.io/serviceaccount/token`. The live workshop materials use `/run/secrets/kubernetes.io/serviceaccount/token` for the token-blocking path because `/var/run` is a symlink and KubeArmor path matching is stricter at the real path.
