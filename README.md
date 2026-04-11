@@ -61,4 +61,4 @@ Some slide examples still show `/var/run/secrets/kubernetes.io/serviceaccount/to
 For the slides, you may also find them in [slides_backup](./slides_backup) directory.
 
 ## Author
-[alex-au-922](https://github.com/alex-au-922), [@wyhwong](https://github.com/wyhwong)
+[@alex-au-922](https://github.com/alex-au-922), [@wyhwong](https://github.com/wyhwong)
