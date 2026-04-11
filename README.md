@@ -2,6 +2,8 @@
 
 This repository contains the slides, attendee workspace, and OpenTofu infrastructure for the Hong Kong Python User Group workshop run by [Alex Au](https://www.linkedin.com/in/alex-au-cloudeng) and [Henry Wong](https://www.linkedin.com/in/wyhwong/) on 11 April 2026.
 
+![AgentCon Hong Kong](./assets/hong-kong-transparent-cropped.png)
+
 ## Workshop Thesis
 
 **Don't trust the agent. Trust the infrastructure.**
@@ -49,3 +51,14 @@ Kubernetes is the substrate, not the lesson. It gives the workshop realistic con
 ## Implementation Note
 
 Some slide examples still show `/var/run/secrets/kubernetes.io/serviceaccount/token`. The live workshop materials use `/run/secrets/kubernetes.io/serviceaccount/token` for the token-blocking path because `/var/run` is a symlink and KubeArmor path matching is stricter at the real path.
+
+## Related Resources
+
+- Powerpoint Slides: [View on OneDrive](https://1drv.ms/p/c/7adfdf652c41fb6c/IQAGA0fZ7sRIT7xesVNr0nknAQKUrV9WlmqKUazeDx9jntc)
+
+- Talk Homepage: [AgentCon Hong Kong](https://globalai.community/chapters/hong-kong/events/agentcon-hong-kong/)
+
+For the slides, you may also find them in [slides_backup](./slides_backup) directory.
+
+## Author
+[alex-au-922](https://github.com/alex-au-922), [@wyhwong](https://github.com/wyhwong)
